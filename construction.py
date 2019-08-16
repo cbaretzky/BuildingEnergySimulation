@@ -11,7 +11,7 @@ from .thermal import *
 def ret_default_config(loc):
     """
     Return Simple building model to output Data
-    Takes 
+    Takes
     loc as str or list to use address(string) or coordinates(list/ndarray(2))
     """
     pass
@@ -28,7 +28,7 @@ class Building():
     Harvesters (Gains):
         SolarPV, Solarthermal cells, Windows, Groundwater/Air Heatexchanger
     Electrical:
-        Battery, Inverter, Electrolysis    
+        Battery, Inverter, Electrolysis
     """
     def __init__(self, loc=None, horizon = None, config =[]):
         """
@@ -65,7 +65,7 @@ class Building():
             if searchterm in name:
                 found.append(component)
         return found
-        
+
     def sim_simulate(self, timeframe_start, timeframe_stop,):
         freq = '{}s'.format(self.timestep)
         times = pd.date_range(timeframe_start, timeframe_stop, freq=freq)
@@ -91,7 +91,7 @@ class Building():
         self.sim_results.Date = times
         self.sim_results.loc[self.sim_results.Date == res_df.Date[0]] = res_df
         for time in times[1:]:
-            
+
             self.date = pd.to_datetime(time)
             self.result = {}
             self.result.update({'Date' : self.date,
@@ -102,8 +102,8 @@ class Building():
             #return res_df
             self.sim_results.loc[self.sim_results.Date == res_df.Date[0], res_df.columns] = list(*res_df.values)
         self.sim_results.index=self.sim_results.Date
-        
-        
+
+
 class Losses(): #rename to operations maybe?
     """
     Account for all losses (Energy and Monetary) due to normal operation
@@ -115,7 +115,7 @@ class Losses(): #rename to operations maybe?
         """
         Let Classes register new losses
         """
-        
+
         pass
     def update(self, name, vals):
         """
@@ -123,8 +123,8 @@ class Losses(): #rename to operations maybe?
         Do Calculations
         """
         pass
-        
-    
+
+
 class Cost():
     """
     Keep track of initial investments and running costs due to capex and maintenance contracts.
@@ -132,16 +132,15 @@ class Cost():
     def __init__(self):
         raise NotImplementedError("To be implemented")
 
-def parse_loc(location_In):
+def parse_loc(location_in):
     """
     Parse location
     """
     geolocator = geopy.geocoders.Nominatim(user_agent = "BuildingEnergySimulation")
-    if isinstance(location_In,str):
-        location = geolocator.geocode('KIT Campus Süd')
+    if isinstance(location_in,str):
+        location = geolocator.geocode(location_in)
         loc = [location.latitude, location.longitude]
-    elif isinstance(location_In, list):
-        loc = location_In
+    elif isinstance(location_in, list):
+        loc = location_in
         pass
     return loc
-        

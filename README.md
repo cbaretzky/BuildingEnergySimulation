@@ -67,7 +67,7 @@ bes.Solar_pv_simple.reg(building, kwp = 14,azimuth = 0, inclination=35)
 bes.Battery.reg(building, capacity=14*3.6e6)
 bes.Grid.reg(building)
 ```
-
+#### Connecting all components
 Finally the last components need to be connected with each other. The solar panel and heatpump run through the battery, the battery is connected to the grid.
 
 ```python
