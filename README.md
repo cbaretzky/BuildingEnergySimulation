@@ -2,7 +2,7 @@
 # BuildingEnergySimulation (BES)
 <img src="docs/_IMAGES/Logo.png" width="100"> __
 
-BuildingEnergySimulation (BES) is a OpenSource project to simulate energy flow and storage inside a building.
+BuildingEnergySimulation (BES) is an OpenSource project to simulate energy flow and storage inside a building.
 
 ## Dependencies
 
@@ -12,7 +12,7 @@ BES requires the following python packages:
 
 ## Installation
 
-Install the dependencies and copy the package into a Python user site directory. Unfortunately it is not yet available on PyPI
+Install the dependencies and copy the package into a Python user site directory.
 
 ## Quickstart
 
@@ -21,17 +21,16 @@ import BuildingEnergySimulation as bes
 building= bes.Building(loc="Markt, 52062 Aachen")
 ```
 Will generate the building as a frame for all components.
+The following steps are about adding the relevant components to the building:
 
-The next step is the add the relevant components to the building:
+#### Walls
+Walls are part of the thermal hull of the building. The majority of thermal energy is usually transfered through walls.
 
-Adding a wall to the Building can be done as following:
+Adding a wall to the Building can be done as follows:
 ```python
 bes.Wall.reg(building, bes.DEFAULT_LAYERS['Brick_Granite'], area=400)
 ```
-the layers for walls and windows are lists of dictionary containing the relevant phyical parameters to simulate the thermal properties in one Dimensions:
-
-The "Brick_Granite" layer from the integrated sample layers is defined as
-
+the layers for walls and windows are lists of dictionary containing the relevant phyical parameters to simulate the thermal properties in one Dimensions: The "Brick_Granite" layer from the integrated sample layers is defined as
 ```python
 [{
 'c_v': 1000.0, #Heat capacity
@@ -46,17 +45,22 @@ The "Brick_Granite" layer from the integrated sample layers is defined as
 'rho': 2600.0,
 'thickness': 0.4}],
 ```
+The area parameter defines the wall area in square meters
 
-the area defines the wall area in square meters
 
-To add a window it is neccessary to add the orientation. Azimuth = 0 means the window is facing south, 90 means the window is facing west and -90 means the window is facing east.
+#### Windows
+Windows are relevant for thermal losses as well as thermal gains through solar irradiance. To add a window it is necessary to define the orientation. azimuth = 0 means the window is facing south, 90 means the window is facing west and -90 means the window is facing east.
 ```python
 bes.Window.reg(building, area= 20, azimuth=0)
 ```
-Adding a Heatpump modeled after one specific groundwater based model
+
+
+#### Heating
+Adding a heatpump modeled after one specific groundwater based model
 ```python
 bes.Heatpump.reg(building)
 ```
+#### Solar-pv and battery
 Adding a simplified solar-pv panel with 14 kWp and a battery with 14kWh capacity and a powergrid connection:
 ```python
 bes.Solar_pv_simple.reg(building, kwp = 14,azimuth = 0, inclination=35)
@@ -68,8 +72,8 @@ Finally the last components need to be connected with each other. The solar pane
 
 ```python
 battery = building.get_component('Battery')[0]
-battery.connection_in.append(building.get_component('Solar_pv_simple'))
-battery.connection_in.append(building.get_component('Heatpump'))
+battery.connection_in.append(building.get_component('Solar_pv_simple')[0])
+battery.connection_in.append(building.get_component('Heatpump')[0])
 grid = building.get_component('Grid')[0]
 grid.connection_in.append(battery)
 ```
@@ -82,10 +86,10 @@ When the processing is finished
 ```python
 building.sim_results
 ```
-contains a pandas Dataframe with all relevant quantities through the simulation timeframe and can be written to disk using the functionality integrated into pandas
+contains a pandas Dataframe with all relevant quantities throughout the simulation timeframe and can be written to disk using the functionality integrated into pandas
 ## How it works
 
-The idea is to model the energy flow as a directed graph from the given environmental factors (outer temperature, solar irradiane) to the available energy sources (Grid, Fuel).
+The idea is to model the energy flow as a directed graph from the given environmental factors (outer temperature, solar irradiance) to the available energy sources (grid, fuel).
 
 <img src="docs/_IMAGES/Graph.jpeg" width="1000"> __
 
