@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import geocoder
-import pysolar
 import datetime as dt
 import geopy
 from math import pi
