@@ -7,10 +7,10 @@ from getpass import getuser
 class file_man():
     """
     Module to manage the data on disk for:
-     - shading calculations 
+     - shading calculations
      - calculated power curves
     """
-    
+
     def __init__(self, project_dir):
         raise NotImplemented("This is still WIP")
         self.project_dir = Path(project_dir)
@@ -40,11 +40,11 @@ def get_render_angles(suns):
     for stamp, sun in suns.items():
         if sun.up:
             angles.append(tuple(int(x) for x in sun.az_al))
-    return angles 
+    return angles
 
 def blend_angle(angle =(0,13), az_delta = -44):
     """
-    Calculate 
+    Calculate
     """
     az = angle[0]
     al = angle[1]
@@ -59,7 +59,7 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
     render_dir = path to output renders
     rendered_dir = path of rendered images (defaults to render_dir)
     """
-    
+
     #setting up directories
     blendfile = Path(blendfile)
     render_dir = Path(render_dir)
@@ -68,7 +68,7 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
     if not blendfile.exists():
         raise FileNotFoundError('blendfile at '+str(blendfile.absolute())+' does not exist')
     if not os.path.isdir(render_dir):
-        try: 
+        try:
             os.mkdir(render_dir)
         except Exception as e:
             print(e)
@@ -79,7 +79,7 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
     ang_from_file = set([ (int(file[:-4].split('_')[0]), int(file[:-4].split('_')[1])) for file in files_ ])
     angles = set(get_render_angles(suns))- ang_from_file
 
-    
+
 
     """
     Writing config and commands for blender
@@ -87,7 +87,7 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
     files_ = set(os.listdir(rendered_dir))
     for file in files:
         ang_from_file = []
-        try: 
+        try:
             ang_from_file.append((int(file[:-4].split('_')[0]), int(file[:-4].split('_')[1])))
         except:
             print("Failed on"+file)
@@ -120,7 +120,7 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
         fname = os.path.join(target_dir,str(az)+"_"+str(al)+".png")
         bpy.data.scenes['Scene'].render.filepath = fname
         bpy.ops.render.render( write_still=True )
-        errc  = 0 
+        errc  = 0
         while not(str(az)+"_"+str(al)+".png" in os.listdir(target_dir)):
             time.sleep(.001)
             errc +=1
@@ -134,4 +134,3 @@ def render(suns, blendfile = "untitled.blend", render_dir="render/", rendered_di
     command = path_to_blender+' '+str(blendfile.absolute())+'-b -p '+';'.join(config_file)
     return_code = subprocess.call("", shell=True)
     os.system(path_to_blender()+' '+blend_file+" -b -P "+config_file_path)
-
