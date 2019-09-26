@@ -12,7 +12,7 @@ from scipy.constants import pi
 from multiprocessing import Pool
 from pvlib.solarposition import spa_python
 from functools import lru_cache
-from .helper import req
+from ..helper import req
 """
 Sun position management
 
@@ -25,40 +25,71 @@ TODO refractor code using spa_python functionality
 
 class SunData():
     """
-    Class to manage data associated with sun positions 
+    Class to manage data associated with sun positions
     location loc array(2)
     horizon (array(n) or interpl1d)
-    
-    data contains an pd.Dataframe with (date | azimuth | elevation | is_up ) 
+
+    data contains an pd.Dataframe with (date | azimuth | elevation | is_up )
     """
-    def __init__(self, loc, horizon = None, timestep=6e2):
-        self.loc = loc
-        self.dates = gen_dates()
-        self.data  = pd.DataFrame()
-        self.horizon = horizon
-        self.calc()
-    def calc(self):
-        self.data = get_sundata(self.dates, self.loc, self.horizon)
-        
+    def __init__(self, location, horizon = None, start_year = '2006',
+                end_year = '2007', timestep=6e2):
+        self.location = location
+        self.timestep = timestep
+        self.dates = pd.date_range(str(start_year),
+                                str(end_year),
+                                freq="{}s".format(int(timestep)))
+        if not(isinstance(horizon,interp1d )):
+            self.horizon = interp1d(horizon[:,0],horizon[:,1], bounds_error=False)
+        else:
+            self.horizon = horizon
+        suns = spa_python(self.dates, *self.location)
+        suns.azimuth = suns.azimuth.map(lambda azimuth: azimuth + (azimuth<0)*360-180 )
+        up = suns.elevation>self.horizon(suns.azimuth)
+        suns.insert(column ="is_up",value= up, loc=0)
+        self.start_year = int(start_year)
+        self.end_year = (end_year)
+        self.data = suns
+        self.timestamp_begin = self.dates[0].timestamp()
+        self.timestamp_end = self.dates[-1].timestamp()
+        self.len_timeframe = self.timestamp_end - self.timestamp_begin
+        self.columns= list(self.data.columns)
+        self.index= self.data.index.values.astype(np.int64)*1e-9
+        self.values= self.data.values
+    def plot(self):
+        plt.plot(self.data.azimuth[self.data.is_up==True],
+                self.data.elevation[self.data.is_up==True], 'o',alpha=.01)
+        plt.plot(self.horizon.x,self.horizon.y)
+    def __getitem__(self, index):
+        if isinstance(index,dt.datetime):
+            timestamp_date = index.replace(year=self.start_year).timestamp()
+            index = int((timestamp_date- self.timestamp_begin)/self.timestep)
+            if not(timestamp_date == self.index[index]):
+                raise IndexError(
+                "Calculated index {} does not match real date {}".format(index, )
+                )
+            return dict(zip(self.columns, self.values[index]))
+        else:
+            return self.data.values[index]
+
 
 class Sun():
     """
-    Class to get solar information at a 
+    Class to get solar information at a
     date in datetime
     loc in array(2)
     with horizon as array(azimuth, elevation)
-    
+
     """
-    def __init__(self, date,loc,horizon):
+    def __init__(self, date,loc,horizon = None):
         self.date = date
         self.loc = loc
         self.altitude = None
         self.azimuth = None
         self.sun_angle()
-        
+
         if isinstance(horizon, np.ndarray):
             self.horizon = horizon
-            self.horizon_f = interp1d(self.horizon[:,0],self.horizon[:,1]) 
+            self.horizon_f = interp1d(self.horizon[:,0],self.horizon[:,1])
         elif isinstance(horizon,interp1d):
             self.horizon_f = horizon
         else:
@@ -70,7 +101,7 @@ class Sun():
     @property
     def al_r(self):
         return self.altitude*pi/180
-    
+
     def __call__(self):
         return self.azimuth, self.altitude
     def bpy(self, az_delta=-44):
@@ -95,7 +126,7 @@ class Sun():
         """
         if self.altitude<0:
             return 0
-        else:       
+        else:
             return int(self.altitude>(self.horizon_f(self.azimuth)))
     def sun_angle(self):
         """
@@ -110,13 +141,13 @@ class Sun():
         old pysolar implementation
         azimuth = pysolar.solar.get_azimuth(*self.loc[:2],self.date)-180 #difference between astronomical azimuth and navigational azimuth
         altitude = max(-1,pysolar.solar.get_altitude(*self.loc[:2],self.date))
-        
+
         """
 
 
 def get_hz(lat,lon):
     """
-    Get Horizon file at certain 
+    Get Horizon file at certain
     lat : 48.00
     lon : 11.000
     """
@@ -133,9 +164,9 @@ def get_hz(lat,lon):
 
 def gen_dates(day_res=5,minute_res=10):
     """
-    Generate list of dates in 2016 with resolution in 
+    Generate list of dates in 2016 with resolution in
     day_res (distance between days)
-    minute_res (intraday timestep) 
+    minute_res (intraday timestep)
     (Only for sun position calculations)
     """
     start_day=dt.datetime(2016, 1, 1, tzinfo=dt.timezone.utc)

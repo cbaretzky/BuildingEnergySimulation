@@ -1,6 +1,6 @@
 
 # BuildingEnergySimulation (BES)
-<img src="docs/_IMAGES/Logo.png" width="100"> __
+<img src="docs/_IMAGES/Logo.png" width="100">
 
 BuildingEnergySimulation (BES) is an OpenSource project to simulate energy flow and storage inside a building.
 
@@ -30,14 +30,14 @@ Adding a wall to the Building can be done as follows:
 ```python
 bes.Wall.reg(building, bes.DEFAULT_LAYERS['Brick_Granite'], area=400)
 ```
-the layers for walls and windows are lists of dictionary containing the relevant phyical parameters to simulate the thermal properties in one Dimensions: The "Brick_Granite" layer from the integrated sample layers is defined as
+the layers for walls and windows are lists of dictionary containing the relevant physical parameters to simulate the thermal properties in one dimension: The "Brick_Granite" layer from the integrated sample layers is defined as
 ```python
 [{
-'c_v': 1000.0, #Heat capacity
-'lambda': 0.79, #Heat resistance
+'c_v': 1000.0, #Heat capacity in J/kg
+'lambda': 0.79, #Heat resistance in W/m²K
 'name': 'Brick', #Name
-'rho': 1800.0, #Density
-'thickness': 0.3}, #Thickness of the layer
+'rho': 1800.0, #Density in kg/m³
+'thickness': 0.3}, #Thickness of the layer in m
 {
 'c_v': 1000.0,
 'lambda': 2.80,
@@ -91,12 +91,102 @@ contains a pandas Dataframe with all relevant quantities throughout the simulati
 
 The idea is to model the energy flow as a directed graph from the given environmental factors (outer temperature, solar irradiance) to the available energy sources (grid, fuel).
 
-<img src="docs/_IMAGES/Graph.jpeg" width="1000"> __
+<img src="docs/_IMAGES/Graph.jpeg" width="1000">
 
 
 Physically speaking the simulation is very inaccurate, however it is balanced around how much information about buildings is typically available and the significant influence of inhabitant habits. For example there is no radiator model. But the heat transfer from a underfloor radiator depends on the position and quantity of furniture in the room. It is much easier to assume a given temperature that the room is supposed to have, compared to of solving a differential equation which greatly depends on individual factors which are rarely accessible.
 
 The main goal is to simulate the energy flows on a timescale that can account for the variability of renewable energies.
+
+## A "real" application:
+
+Let's consider a somewhat more complete house:
+
+
+### Example building overview:
+#### Southwest View:
+<img src="docs/_IMAGES/overview_south_west.png" width="400" >
+
+#### Northeast View:
+<img src="docs/_IMAGES/overview_north_east.png" width="400">
+
+#### Relevant dimensions
+<img src="docs/_IMAGES/dimensions.png" width="500">
+
+### Relevant components
+These buildings consist of several relevant components which need to be considered with proper dimensions:
+#### Thermal hull in southwest view::
+<img src="docs/_IMAGES/components_south_west.png" width="1000">
+
+#### Thermal hull in northeast view
+<img src="docs/_IMAGES/components_north_east.png" width="1000">___
+
+
+
+#### Configure it in BES:
+As usually the project starts with a building object:
+```python
+import BuildingEnergySimulation as bes
+building= bes.Building(loc="Address of the building or list of coordinates [N, E] e.g. [49, 10]")
+```
+##### Building the thermal hull:
+As we see each direction has at least one window and a wall. Additionally the two doors, the roof and the ground plane need to be considered.
+###### Parametrizing the spacial dimensions:
+
+The window area in each cardinal direction has to be calculated:
+```python
+window_area_south = 4*1.2*2.4
+window_area_west = 2*1.2*2.4
+window_area_north = 3*1.2*2.4
+window_area_east = 3*1.2*2.4
+```
+Additionally the door area can be calculated:
+```python
+door_area_west = 1.2*2.4
+door_area_north = 1.2*2.4
+```
+Given all the window and door areas, the wall, roof and ground plane areas can be calculated easily:
+```python
+area_wall_south = 8.8*5-window_area_south
+area_wall_west = 4*(5+3.3*.5)-window_area_west-door_area_west
+area_wall_north = 8.8*5-window_area_north-door_area_north
+area_wall_east = 4*(5+3.3*.5)-window_area_east
+area_roof = 2*4.4*8.8
+area_ground_plane = 4*8.8
+```
+Given, that the orientation of the wall is not considered these values can be added to a sum value:
+```python
+area_wall = area_wall_south+area_wall_west+area_wall_north+area_wall_east
+```
+##### Parametrizing the building materials:
+In addition to the areas of the components, their material makup needs to be defined. While there are some material/layer presets in the BES package, they will most likely be insufficient for an accurate representation. Relevant material parameters for given building materials can be found on the [ubakus](https://www.ubakus.de/u-wert-rechner/) website.
+
+For now it is assumed, that
+- the Wall of the building is made of 30cm of brick,
+- the roof consists of 10cm wood and a 20cm of insulation,
+
+- windows consist of 3.6cm of insulation glass
+- the doors consist of 15cm of pine wood
+- the ground floor consists of 10cm of screed and 20cm of XPS insulation
+
+```python
+material_db = Materia_db(DEFAULT_MATERIALS)
+
+
+bes.Wall.reg(building,area=area_wall, layers=bes.DEFAULT_LAYERS['Brick'], ) #Wall
+bes.Wall.reg(building,area=area_roof,  layers=bes.DEFAULT_LAYERS['Roof'], ) #Roof
+bes.Ground_floor.reg(building, area=area_ground_plane,
+                     layers = bes.DEFAULT_LAYERS['Brick']) #Floor
+bes.Wall.reg(building,area=door_area_west+door_area_north,  layers=bes.DEFAULT_LAYERS['Roof'], ) #Roof
+bes.Window.reg(building, area=window_area_south, layers=bes.DEFAULT_LAYERS['Window'], azimuth=0) #windows
+bes.Window.reg(building, area=window_area_west, layers=bes.DEFAULT_LAYERS['Window'], azimuth=90) #windows
+bes.Window.reg(building, area=window_area_north, layers=bes.DEFAULT_LAYERS['Window'], azimuth=180) #windows
+bes.Window.reg(building, area=window_area_east, layers=bes.DEFAULT_LAYERS['Window'], azimuth=-90) #windows
+
+
+
+```
+
 
 ## Comments
 

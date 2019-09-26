@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import numpy as np
 from .helper import *
-from .solar import *
+from .shading.solar import *
 from .pvgis import *
 from .electrical import *
 from .thermal import *
@@ -42,10 +42,10 @@ class Building():
         else:
             self.location = parse_loc(loc)
         if horizon == None:
-            self.hz_data = get_hz(self.location[0],self.location[1])[1]
+            self.horizon = get_hz(self.location[0],self.location[1])[1]
         self.PVGIS = PVGIS(self.location, inclination = 0, azimuth= 0)
         self.date = self.PVGIS.data['Date'][0]
-        #self.sundata = SunData(self.location, self.hz_data)
+        self.sundata = SunData(self.location, self.horizon)
         self.walls = []
         self.windows = []
         self.components = {}
