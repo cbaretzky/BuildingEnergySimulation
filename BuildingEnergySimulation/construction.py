@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import numpy as np
 from .helper import *
-from .solar import *
+from .shading.solar import *
 from .pvgis import *
 from .electrical import *
 from .thermal import *
@@ -30,7 +30,7 @@ class Building():
     Electrical:
         Battery, Inverter, Electrolysis
     """
-    def __init__(self, loc=None, horizon = None, config =[]):
+    def __init__(self, loc=None, horizon = None, startyear = 2007, endyear = 2008, config =[]):
         """
         Setup External parameters
         """
@@ -42,10 +42,10 @@ class Building():
         else:
             self.location = parse_loc(loc)
         if horizon == None:
-            self.hz_data = get_hz(self.location[0],self.location[1])[1]
+            self.horizon = get_hz(self.location[0],self.location[1])[1]
         self.PVGIS = PVGIS(self.location, inclination = 0, azimuth= 0)
         self.date = self.PVGIS.data['Date'][0]
-        #self.sundata = SunData(self.location, self.hz_data)
+        self.sundata = SunData(self.location, self.horizon)
         self.walls = []
         self.windows = []
         self.components = {}
@@ -65,10 +65,22 @@ class Building():
             if searchterm in name:
                 found.append(component)
         return found
+    def reg(self,component, *args, **kwargs):
+        """
+        Wrapper to register from within the building instance
+        instead of bes.Component.reg(*args, **kwargs) it can be
+        building.reg(bes.Wall, *args, **kwargs)
 
-    def sim_simulate(self, timeframe_start, timeframe_stop,):
+        """
+        component.reg(self, *args, **kwargs)
+
+    def simulate(self, timeframe_start, timeframe_stop,):
+        """
+        Run the simulation from timeframe_start to timeframe_stop with the defined timestep
+        """
         freq = '{}s'.format(self.timestep)
         times = pd.date_range(timeframe_start, timeframe_stop, freq=freq)
+        self.sim_result_list = []
         for time in times:
             self.date = pd.to_datetime(time)
             self.result = {}
@@ -76,32 +88,11 @@ class Building():
                                'Tamb' : self.PVGIS[self.date]['Tamb']})
             for name, component in self.components.items():
                 _ = component.out
-    def simulate(self, timeframe_start, timeframe_stop,):
-        """
-        Run the simulation for the constructed building
-        """
-        self.sim_results = None
-        freq = '{}s'.format(self.timestep)
-        times = pd.date_range(timeframe_start, timeframe_stop, freq=freq)
-        for name, component in self.components.items():
-            _ = component.out
-        res_df = pd.DataFrame(self.result,index = [0])
-        data_types = res_df.dtypes.to_dict()
-        self.sim_results = pd.DataFrame(index = np.arange(len(times)), columns = self.result.keys()).astype(data_types)
-        self.sim_results.Date = times
-        self.sim_results.loc[self.sim_results.Date == res_df.Date[0]] = res_df
-        for time in times[1:]:
+            self.sim_result_list.append(self.result)
+        self.sim_results = pd.DataFrame(self.sim_result_list)
+        self.sim_results.index = self.sim_results.Date
+        return sim_results
 
-            self.date = pd.to_datetime(time)
-            self.result = {}
-            self.result.update({'Date' : self.date,
-                               'Tamb' : self.PVGIS[self.date]['Tamb']})
-            for name, component in self.components.items():
-                _ = component.out
-            res_df = pd.DataFrame(self.result,index = [0])
-            #return res_df
-            self.sim_results.loc[self.sim_results.Date == res_df.Date[0], res_df.columns] = list(*res_df.values)
-        self.sim_results.index=self.sim_results.Date
 
 
 class Losses(): #rename to operations maybe?

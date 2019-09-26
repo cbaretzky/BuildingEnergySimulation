@@ -20,14 +20,14 @@ from scipy.optimize import minimize
 import io
 
 
-from . import solar
-from .solar import*
+#from . import solar
+#from .solar import*
 
-from .shading import solar_v_i
-from .shading.solar_v_i import *
+#from .shading import solar_v_i
+#from .shading.solar_v_i import *
 
-from .shading import pv_power
-from .shading.pv_power import *
+#from .shading import pv_power
+#from .shading.pv_power import *
 
 from . import electrical
 from .electrical import *
@@ -38,14 +38,16 @@ from .construction import *
 from . import thermal
 from .thermal import  *
 
-from .shading import blender
-from .shading.blender import *
+#from .shading import blender
+#from .shading.blender import *
 
 from . import pvgis
 from .pvgis import *
 
 from . import helper
 from .helper import *
+
+from . import shading
 
 
 """
@@ -56,7 +58,7 @@ TODO:
 Create Node based Energy flow modell:
 
     In Nodes
-    eg: 
+    eg:
     'IN'
         P_in
         T_in
