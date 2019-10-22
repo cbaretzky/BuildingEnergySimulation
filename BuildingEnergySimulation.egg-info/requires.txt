@@ -1,9 +1,0 @@
-geocoder
-geopy
-matplotlib
-numba
-numpy
-pandas
-pvlib
-requests
-scipy

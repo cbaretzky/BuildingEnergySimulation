@@ -1,6 +1,7 @@
 .ipynb_checkpoints/
 .DS_Store
 __pycache__/
+*.egg-info/
 *.py[cod]
 
 # C extensions
@@ -17,7 +18,7 @@ lib64/
 parts/
 sdist/
 var/
-*.egg-info/
+*.egg-info
 .installed.cfg
 *.egg
 

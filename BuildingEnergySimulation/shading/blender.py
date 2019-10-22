@@ -6,18 +6,17 @@ import subprocess
 from sys import platform
 from getpass import getuser
 from . import solar
+from typing import List
 
 
 class Render_manager():
-    """
-    Module to manage the data on disk for:
+    """Module to manage the render data on disk.
      - shading calculations
-     - calculated power curves
 
      az_delta = angle between x axis in blender file and north
     """
 
-    def __init__(self,building, blend_file, az_delta = 0):
+    def __init__(self, building, blend_file, az_delta=0):
         temp_dir = Path(tempfile.gettempdir())
         self.location = building.location
         self.horizon = building.horizon
@@ -28,10 +27,16 @@ class Render_manager():
         return_code = subprocess.call(self.path_to_blender+" -b", shell=True)
         self.render_angles = self.get_render_angles(self.suns)
         self.az_delta = az_delta
-        if not return_code is 0:
-            raise FileNotFoundError("Could not run blender through '{}''".format(self.path_to_blender))
+        if return_code is not 0:
+            raise FileNotFoundError(
+                (
+                    "Could not run blender through '{}''"
+                ).format(self.path_to_blender))
+
     def run(self):
-        self.render(self.get_render_angles, self.blend_file, self.path_to_blender)
+        self.render(self.get_render_angles, self.blend_file,
+                    self.path_to_blender)
+
     @staticmethod
     def get_path_to_blender():
         """
@@ -44,16 +49,24 @@ class Render_manager():
         elif platform.startswith('darwin'):
             return Path("/Applications/blender/Contents/MacOS/blender")
         elif platform.startswith('win32'):
-            return Path(r'C:\Program Files\Blender Foundation\Blender\blender.exe')
+            return Path(
+                r'C:\Program Files\Blender Foundation\Blender\blender.exe'
+            )
+
     @staticmethod
     def get_render_angles(suns):
         """
         return set of integer tuples from sun positions
         """
-        return set((angle[0], angle[1]) for angle in np.asarray(suns.data[['azimuth','elevation', "is_up"]]).astype(np.int) if angle[2])
+        return set((angle[0], angle[1]) for angle in np.asarray(
+            suns.data[
+                ['azimuth', 'elevation', "is_up"]
+            ]).astype(np.int) if angle[2]
+        )
 
     @staticmethod
-    def render(render_angles, blendfile, path_to_blender, render_dir="render/", az_delta=0,):
+    def render(render_angles, blendfile, path_to_blender,
+               render_dir="render/", az_delta=0,):
         """
         Managing illumination render
         blendfile = path to blender file
@@ -61,22 +74,26 @@ class Render_manager():
         rendered_dir = path of rendered images (defaults to render_dir)
         """
 
-        #setting up directories
+        # setting up directories
         blendfile = Path(blendfile)
         if isinstance(render_dir, str):
             render_dir = Path(render_dir)
         render_dir = Path(render_dir)
         if not blendfile.exists():
-            raise FileNotFoundError('blendfile at '+str(blendfile.absolute())+' does not exist')
+            raise FileNotFoundError(
+                'blendfile at ' + str(blendfile.absolute()) +
+                ' does not exist')
         if not os.path.isdir(render_dir):
             try:
                 os.mkdir(render_dir)
             except Exception as e:
                 print(e)
-                raise IOError("Couldn't create {}".format(render_dir.absolute()))
+                raise IOError(
+                    "Couldn't create {}".format(render_dir.absolute())
+                )
 
         angles = render_angles
-        config_file_path = Path.joinpath(render_dir,Path('config_file'))
+        config_file_path = Path.joinpath(render_dir, Path('config_file'))
         """
         Writing config and commands for blender
         """
@@ -100,13 +117,15 @@ fname="_".join([file_name_blend.name.split('.')[0],*rot])
         config_file.append(imports_setup)
 
         t_dir = "target_dir = '{}'".format(
-        str(Path.joinpath(render_dir, Path(blendfile.stem+hex(hash(tuple(angles))))).absolute())
+            str((Path.joinpath(
+                render_dir, Path(blendfile.stem+hex(hash(tuple(angles)))))
+            ).absolute())
         )
 
         config_file.append(t_dir)
 
-        t_angles=  "angles = "+str(list(angles))
-        angle_offset="az_delta = {}".format(az_delta)
+        t_angles = "angles = "+str(list(angles))
+        angle_offset = "az_delta = {}".format(az_delta)
         config_file.append(t_angles)
         config_file.append("\n")
         config_file.append(angle_offset)
@@ -137,12 +156,15 @@ for angle in angles:
         if errc > 100:
             print('Could not read file: {}'.format(img_path))
             break
-print("Rendered {} images in {} seconds".format(len(angles), time.time()-start_time))
+print("Rendered {} images in {} seconds".format(len(angles),
+        time.time()-start_time))
         """
         config_file.append(render_exe)
 
-        with open(config_file_path,'w') as f:
+        with open(config_file_path, 'w') as f:
             f.write("\n".join(config_file))
-        command = path_to_blender+' '+str(blendfile.absolute())+' -b -P '+str(Path(config_file_path).absolute())
+        command = path_to_blender+' ' + \
+            str(blendfile.absolute())+' -b -P ' + \
+            str(Path(config_file_path).absolute())
         print(command)
         return_code = subprocess.call(command, shell=True)

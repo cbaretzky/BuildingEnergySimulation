@@ -28,7 +28,7 @@ Walls are part of the thermal hull of the building. The majority of thermal ener
 
 Adding a wall to the Building can be done as follows:
 ```python
-bes.Wall.reg(building, bes.DEFAULT_LAYERS['Brick_Granite'], area=400)
+bes.Wall.reg(building,area=400,layers=bes.DEFAULT_LAYERS['Brick_Granite'])
 ```
 the layers for walls and windows are lists of dictionary containing the relevant physical parameters to simulate the thermal properties in one dimension: The "Brick_Granite" layer from the integrated sample layers is defined as
 ```python
@@ -87,6 +87,10 @@ When the processing is finished
 building.sim_results
 ```
 contains a pandas Dataframe with all relevant quantities throughout the simulation timeframe and can be written to disk using the functionality integrated into pandas
+
+#### Visualizing and understanding the data.
+
+
 ## How it works
 
 The idea is to model the energy flow as a directed graph from the given environmental factors (outer temperature, solar irradiance) to the available energy sources (grid, fuel).
@@ -119,7 +123,7 @@ These buildings consist of several relevant components which need to be consider
 <img src="docs/_IMAGES/components_south_west.png" width="1000">
 
 #### Thermal hull in northeast view
-<img src="docs/_IMAGES/components_north_east.png" width="1000">___
+<img src="docs/_IMAGES/components_north_east.png" width="1000">
 
 
 
@@ -192,4 +196,4 @@ bes.Window.reg(building, area=window_area_east, layers=bes.DEFAULT_LAYERS['Windo
 
 This is a "rough around the edges" project, that started and still is a repository of codefragments I used.
 
-The PVGIS data is hardcoded to the year 2007 to keep the load on the PVGIS API low. However the API provides data for the years 2005 through 2015 which can be changed in the PVGIS class .
+The Pvgis data is hardcoded to the year 2007 to keep the load on the Pvgis API low. However the API provides data for the years 2005 through 2015 which can be changed in the Pvgis class .

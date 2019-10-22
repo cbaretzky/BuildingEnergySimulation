@@ -12,9 +12,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -22,6 +22,7 @@
 project = u'BuildingEnergySimulation'
 copyright = u'2019, Clemens Baretzky'
 author = u'Clemens Baretzky'
+html_favicon = '_IMAGES/favicon1.png'
 
 # The short X.Y version
 version = u''
@@ -42,6 +43,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.todo'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -66,18 +69,18 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store', 'test*']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
-
+autoclass_content = "both"
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -153,8 +156,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'BuildingEnergySimulation', u'BuildingEnergySimulation Documentation',
-     author, 'BuildingEnergySimulation', 'One line description of project.',
-     'Miscellaneous'),
+     author, 'BuildingEnergySimulation', 'Simulate Energy flows inside a Bulding',
+     'energy'),
 ]
 
 

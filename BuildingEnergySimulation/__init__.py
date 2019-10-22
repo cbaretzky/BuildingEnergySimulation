@@ -1,3 +1,5 @@
+"""Building Energy Simulation based on given meteorological data."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import geocoder
@@ -20,14 +22,14 @@ from scipy.optimize import minimize
 import io
 
 
-#from . import solar
-#from .solar import*
+# from . import solar
+# from .solar import*
 
-#from .shading import solar_v_i
-#from .shading.solar_v_i import *
+# from .shading import solar_v_i
+# from .shading.solar_v_i import *
 
-#from .shading import pv_power
-#from .shading.pv_power import *
+# from .shading import pv_power
+# from .shading.pv_power import *
 
 from . import electrical
 from .electrical import *
@@ -36,10 +38,10 @@ from . import construction
 from .construction import *
 
 from . import thermal
-from .thermal import  *
+from .thermal import *
 
-#from .shading import blender
-#from .shading.blender import *
+# from .shading import blender
+# from .shading.blender import *
 
 from . import pvgis
 from .pvgis import *
@@ -48,24 +50,3 @@ from . import helper
 from .helper import *
 
 from . import shading
-
-
-"""
-Building Energy Simulation based on given meteorological data.
-
-TODO:
-
-Create Node based Energy flow modell:
-
-    In Nodes
-    eg:
-    'IN'
-        P_in
-        T_in
-        V_in
-        C_v_in
-    'OUT'
-        T_out
-        V_in
-        C_V_in
-"""
